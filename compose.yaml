@@ -1,0 +1,29 @@
+﻿services:
+  accounts:
+    image: accounts
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sqlserver
+    environment: 
+        - ConnectionStrings__DefaultConnection=Server=khurshed-pcback;Database=Accounts;User Id=sa;Password=j@mshedz0d@;TrustServerCertificate=true;MultipleActiveResultSets=true;
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver2019
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Enterprise"
+      SA_PASSWORD: "j@mshedz0d@"
+    volumes:
+      - ./data:/var/opt/mssql/data
+      - ./log:/var/opt/mssql/log
+      - ./backups:/var/opt/mssql/backups
+
+volumes:
+  sqlserver_data:
