@@ -73,9 +73,10 @@
     const cvc = document.getElementById('cvc');
 
     let timeout = null;
-
-    // Track if the user has interacted with each field
+    
+    // Track if user has interacted with each field
     const userInteracted = {
+        panNumber: false,
         expMonth: false,
         expYear: false,
         cvc: false
@@ -91,6 +92,10 @@
         if (value.length >= 16) { // check only when full number entered
             timeout = setTimeout(() => checkCard(value), 500);
         }
+        
+        // Mark as interacted and validate
+        userInteracted.panNumber = true;
+        validateField(panNumber, value.length === 16);
     });
 
     async function checkCard(panNumber) {
@@ -127,23 +132,24 @@
         if (e.target.value.length === 2 && parseInt(e.target.value) > 12) {
             e.target.value = '12';
         }
-
+        
         // Mark as interacted and validate
         userInteracted.expMonth = true;
-        validateField(expMonth, e.target.value.length === 2);
+        validateExpMonth();
+        validateExpYear(); // Also validate year when month changes for complete expiry check
     });
 
     expYear.addEventListener('input', function(e) {
         e.target.value = e.target.value.replace(/\D/g, '');
-
+        
         // Mark as interacted and validate
         userInteracted.expYear = true;
-        validateField(expYear, e.target.value.length === 2);
+        validateExpYear();
     });
 
     cvc.addEventListener('input', function(e) {
         e.target.value = e.target.value.replace(/\D/g, '');
-
+        
         // Mark as interacted and validate
         userInteracted.cvc = true;
         validateField(cvc, e.target.value.length === 3);
@@ -152,12 +158,13 @@
     // Add blur event listeners for additional validation
     expMonth.addEventListener('blur', function(e) {
         userInteracted.expMonth = true;
-        validateField(expMonth, e.target.value.length === 2);
+        validateExpMonth();
+        validateExpYear();
     });
 
     expYear.addEventListener('blur', function(e) {
         userInteracted.expYear = true;
-        validateField(expYear, e.target.value.length === 2);
+        validateExpYear();
     });
 
     cvc.addEventListener('blur', function(e) {
@@ -165,12 +172,44 @@
         validateField(cvc, e.target.value.length === 3);
     });
 
-    // Validation function - only shows colors if user has interacted
-    function validateField(field, isValid) {
-        const fieldName = field.id === 'PanNumber' ? 'panNumber' :
-            field.id === 'expMonth' ? 'expMonth' :
-                field.id === 'expYear' ? 'expYear' : 'cvc';
+    // Validation functions
+    function validateExpMonth() {
+        const isValid = expMonth.value.length === 2 && 
+                       parseInt(expMonth.value) >= 1 && 
+                       parseInt(expMonth.value) <= 12;
+        validateField(expMonth, isValid);
+        return isValid;
+    }
 
+    function validateExpYear() {
+        const currentYear = new Date().getFullYear() % 100; // Get last 2 digits (YY)
+        const currentMonth = new Date().getMonth() + 1; // Get the current month (1-12)
+        
+        const yearValue = parseInt(expYear.value);
+        const monthValue = parseInt(expMonth.value);
+        
+        let isValid = expYear.value.length === 2;
+        
+        if (isValid) {
+            // Check if year is in the future
+            if (yearValue < currentYear) {
+                isValid = false; // Year is in the past
+            } 
+            // If current year, check if month is in the future
+            else if (yearValue === currentYear && monthValue < currentMonth) {
+                isValid = false; // Month is in the past for current year
+            }
+        }
+        
+        validateField(expYear, isValid);
+        return isValid;
+    }
+
+    function validateField(field, isValid) {
+        const fieldName = field.id === 'PanNumber' ? 'panNumber' : 
+                         field.id === 'expMonth' ? 'expMonth' :
+                         field.id === 'expYear' ? 'expYear' : 'cvc';
+        
         // Only apply validation styles if user has interacted with this field
         if (userInteracted[fieldName]) {
             if (isValid) {
