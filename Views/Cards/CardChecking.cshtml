@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма оплаты картой</title>
+    <link rel="stylesheet" href="~/css/CardCheckingStyle.css" />
+</head>
+<body>
+<div class="card-form">
+    <div class="form-group">
+        <label for="PanNumber">Номер карты</label>
+        <div class="card-icon">
+            <input
+                    type="text"
+                    id="PanNumber"
+                    class="card-number-input"
+                    placeholder="**** **** **** ****"
+                    maxlength="19"
+            >
+            <div class="card-visual">
+                <div class="card-chip"></div>
+                <div class="card-stripe"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="expiry-group">
+            <label>Срок действия</label>
+            <div class="expiry-inputs">
+                <input
+                        type="text"
+                        placeholder="MM"
+                        maxlength="2"
+                        id="expMonth"
+                >
+                <input
+                        type="text"
+                        placeholder="ГГ"
+                        maxlength="2"
+                        id="expYear"
+                >
+            </div>
+        </div>
+
+        <div class="cvc-group">
+            <label for="cvc">Код проверки</label>
+            <input
+                    type="text"
+                    id="cvc"
+                    placeholder="CVC"
+                    maxlength="3"
+            >
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="cardHolder">Имя и фамилия владельца карты</label>
+        <input
+                type="text"
+                id="cardHolder"
+                class="holder-input"
+                placeholder="CARD HOLDER"
+        >
+    </div>
+</div>
+
+<script>
+    const panNumber = document.getElementById('PanNumber');
+    const expMonth = document.getElementById('expMonth');
+    const expYear = document.getElementById('expYear');
+    const cvc = document.getElementById('cvc');
+
+    let timeout = null;
+
+    panNumber.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue;
+
+        clearTimeout(timeout);
+
+        if (value.length >= 16) { // check only when full number entered
+            timeout = setTimeout(() => checkCard(value), 500);
+        }
+    });
+    console.log(panNumber);
+
+    async function checkCard(panNumber) {
+        try {
+            // Format the PAN with hyphens for the API request
+            const formattedPan = panNumber.replace(/(\d{4})/g, '$1-').replace(/-$/, '');
+
+            const response = await fetch(`/api/Cards/by-pan/${formattedPan}`);
+            if (response.ok) {
+                const card = await response.json();
+                showCardInfo(card);
+            } else {
+                showNotFound();
+            }
+        } catch (error) {
+            console.error('Error fetching card info:', error);
+        }
+    }
+
+    function showCardInfo(card) {
+        console.log('Card found:', card);
+        // example: show some visual feedback
+        panNumber.style.borderColor = "green";
+    }
+
+    function showNotFound() {
+        console.log('Card not found');
+        panNumber.style.borderColor = "red";
+    }
+
+    expMonth.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/\D/g, '');
+        if (e.target.value.length === 2 && parseInt(e.target.value) > 12) {
+            e.target.value = '12';
+        }
+    });
+
+    expYear.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/\D/g, '');
+    });
+
+    cvc.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/\D/g, '');
+    });
+</script>
+</body>
+</html>
