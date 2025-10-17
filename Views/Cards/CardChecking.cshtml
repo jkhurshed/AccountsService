@@ -30,16 +30,16 @@
             <label>Срок действия</label>
             <div class="expiry-inputs">
                 <input
-                        type="text"
-                        placeholder="MM"
-                        maxlength="2"
-                        id="expMonth"
+                    type="text"
+                    placeholder="MM"
+                    maxlength="2"
+                    id="expMonth"
                 >
                 <input
-                        type="text"
-                        placeholder="ГГ"
-                        maxlength="2"
-                        id="expYear"
+                    type="text"
+                    placeholder="ГГ"
+                    maxlength="2"
+                    id="expYear"
                 >
             </div>
         </div>
@@ -47,10 +47,10 @@
         <div class="cvc-group">
             <label for="cvc">Код проверки</label>
             <input
-                    type="text"
-                    id="cvc"
-                    placeholder="CVC"
-                    maxlength="3"
+                type="text"
+                id="cvc"
+                placeholder="CVC"
+                maxlength="3"
             >
         </div>
     </div>
@@ -58,10 +58,10 @@
     <div class="form-group">
         <label for="cardHolder">Имя и фамилия владельца карты</label>
         <input
-                type="text"
-                id="cardHolder"
-                class="holder-input"
-                placeholder="CARD HOLDER"
+            type="text"
+            id="cardHolder"
+            class="holder-input"
+            placeholder="CARD HOLDER"
         >
     </div>
 </div>
@@ -74,6 +74,13 @@
 
     let timeout = null;
 
+    // Track if the user has interacted with each field
+    const userInteracted = {
+        expMonth: false,
+        expYear: false,
+        cvc: false
+    };
+
     panNumber.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\s/g, '');
         let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
@@ -85,7 +92,6 @@
             timeout = setTimeout(() => checkCard(value), 500);
         }
     });
-    console.log(panNumber);
 
     async function checkCard(panNumber) {
         try {
@@ -106,13 +112,14 @@
 
     function showCardInfo(card) {
         console.log('Card found:', card);
-        // example: show some visual feedback
-        panNumber.style.borderColor = "green";
+        panNumber.classList.remove('invalid');
+        panNumber.classList.add('valid');
     }
 
     function showNotFound() {
         console.log('Card not found');
-        panNumber.style.borderColor = "red";
+        panNumber.classList.remove('valid');
+        panNumber.classList.add('invalid');
     }
 
     expMonth.addEventListener('input', function(e) {
@@ -120,15 +127,64 @@
         if (e.target.value.length === 2 && parseInt(e.target.value) > 12) {
             e.target.value = '12';
         }
+
+        // Mark as interacted and validate
+        userInteracted.expMonth = true;
+        validateField(expMonth, e.target.value.length === 2);
     });
 
     expYear.addEventListener('input', function(e) {
         e.target.value = e.target.value.replace(/\D/g, '');
+
+        // Mark as interacted and validate
+        userInteracted.expYear = true;
+        validateField(expYear, e.target.value.length === 2);
     });
 
     cvc.addEventListener('input', function(e) {
         e.target.value = e.target.value.replace(/\D/g, '');
+
+        // Mark as interacted and validate
+        userInteracted.cvc = true;
+        validateField(cvc, e.target.value.length === 3);
     });
+
+    // Add blur event listeners for additional validation
+    expMonth.addEventListener('blur', function(e) {
+        userInteracted.expMonth = true;
+        validateField(expMonth, e.target.value.length === 2);
+    });
+
+    expYear.addEventListener('blur', function(e) {
+        userInteracted.expYear = true;
+        validateField(expYear, e.target.value.length === 2);
+    });
+
+    cvc.addEventListener('blur', function(e) {
+        userInteracted.cvc = true;
+        validateField(cvc, e.target.value.length === 3);
+    });
+
+    // Validation function - only shows colors if user has interacted
+    function validateField(field, isValid) {
+        const fieldName = field.id === 'PanNumber' ? 'panNumber' :
+            field.id === 'expMonth' ? 'expMonth' :
+                field.id === 'expYear' ? 'expYear' : 'cvc';
+
+        // Only apply validation styles if user has interacted with this field
+        if (userInteracted[fieldName]) {
+            if (isValid) {
+                field.classList.remove('invalid');
+                field.classList.add('valid');
+            } else {
+                field.classList.remove('valid');
+                field.classList.add('invalid');
+            }
+        } else {
+            // Remove both classes if no interaction yet
+            field.classList.remove('invalid', 'valid');
+        }
+    }
 </script>
 </body>
 </html>

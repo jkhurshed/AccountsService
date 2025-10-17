@@ -132,3 +132,11 @@ input::placeholder {
         flex: 1;
     }
 }
+
+.invalid {
+    border-color: red !important;
+    border-width: 2px !important;
+}
+.valid {
+    border-color: green !important;
+}
