@@ -18,7 +18,7 @@ public class CardsController : ControllerBase
         _context = context;
     }
 
-    // ✅ GET: api/cards
+    // GET: api/cards
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Card>>> GetCards()
     {
@@ -26,7 +26,7 @@ public class CardsController : ControllerBase
         return Ok(cards);
     }
 
-    // ✅ GET: api/cards/5
+    // GET: api/cards/5
     [HttpGet("{id}")]
     public async Task<ActionResult<Card>> GetCard(int id)
     {
@@ -50,7 +50,7 @@ public class CardsController : ControllerBase
         return Ok(card);
     }
 
-    // ✅ POST: api/cards
+    // POST: api/cards
     [HttpPost]
     public async Task<ActionResult<Card>> PostCard(Card card)
     {
@@ -59,5 +59,23 @@ public class CardsController : ControllerBase
 
         // Returns 201 Created + location header
         return CreatedAtAction(nameof(GetCard), new { id = card.Id }, card);
+    }
+    
+    // Card check by cardNumber, expirationDate, cvv and CardHolder
+    [HttpGet("cardCheckForExisting")]
+    public async Task<ActionResult<Card>> CardChecking(
+        string cardNumber, int expMonth, int expYear, 
+        int cvv, string CardHolder)
+    {
+        bool isCardValid = await _context.Cards
+            .Select(c => new { c.PanNumber, c.ExpMonth, c.ExpYear, c.Cvv, c.CardHolder })
+            .Where(c => 
+                c.PanNumber == cardNumber && 
+                c.ExpMonth == expMonth && 
+                c.ExpYear == expYear && 
+                c.Cvv == cvv && 
+                c.CardHolder == CardHolder)
+            .AnyAsync();
+        return isCardValid ? Ok() : BadRequest();
     }
 }

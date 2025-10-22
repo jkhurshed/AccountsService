@@ -28,7 +28,19 @@ builder.Services.AddDbContext<AccountDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowTransferService", policy =>
+    {
+        policy.WithOrigins("http://localhost:5104")
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors("AllowTransferService");
 
 
 if (app.Environment.IsDevelopment())

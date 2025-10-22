@@ -71,8 +71,27 @@
     const expMonth = document.getElementById('expMonth');
     const expYear = document.getElementById('expYear');
     const cvc = document.getElementById('cvc');
+    const cardHolder = document.getElementById('cardHolder');
 
     let timeout = null;
+
+    function sendCardData() {
+        const data = {
+            panNumber: panNumber.value,
+            expMonth: expMonth.value,
+            expYear: expYear.value,
+            cardHolder: cardHolder.value
+        };
+
+        // Send it to a specific parent origin (TransferService)
+        console.log("Sending data to parent:", data);   
+        window.parent.postMessage(data, "http://localhost:5104");
+    }
+
+    // Whenever any input changes, send updated data
+    [panNumber, expMonth, expYear, cardHolder].forEach(el => {
+        el.addEventListener('input', sendCardData);
+    });
     
     // Track if user has interacted with each field
     const userInteracted = {
@@ -174,9 +193,8 @@
 
     // Validation functions
     function validateExpMonth() {
-        const isValid = expMonth.value.length === 2 && 
-                       parseInt(expMonth.value) >= 1 && 
-                       parseInt(expMonth.value) <= 12;
+        const isValid = parseInt(expMonth.value) >= 1 && 
+                        parseInt(expMonth.value) <= 12;
         validateField(expMonth, isValid);
         return isValid;
     }
