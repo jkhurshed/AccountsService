@@ -72,6 +72,7 @@
     const expYear = document.getElementById('expYear');
     const cvc = document.getElementById('cvc');
     const cardHolder = document.getElementById('cardHolder');
+    const cvv = document.getElementById('cvc');
 
     let timeout = null;
 
@@ -80,7 +81,8 @@
             panNumber: panNumber.value,
             expMonth: expMonth.value,
             expYear: expYear.value,
-            cardHolder: cardHolder.value
+            cardHolder: cardHolder.value,
+            cvv: cvv.value
         };
 
         // Send it to a specific parent origin (TransferService)
@@ -89,7 +91,7 @@
     }
 
     // Whenever any input changes, send updated data
-    [panNumber, expMonth, expYear, cardHolder].forEach(el => {
+    [panNumber, expMonth, expYear, cardHolder, cvc].forEach(el => {
         el.addEventListener('input', sendCardData);
     });
     

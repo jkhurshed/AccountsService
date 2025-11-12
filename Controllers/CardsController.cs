@@ -65,17 +65,17 @@ public class CardsController : ControllerBase
     [HttpGet("cardCheckForExisting")]
     public async Task<ActionResult<Card>> CardChecking(
         string cardNumber, int expMonth, int expYear, 
-        int cvv, string CardHolder)
+        int cvv, string cardHolder)
     {
-        bool isCardValid = await _context.Cards
-            .Select(c => new { c.PanNumber, c.ExpMonth, c.ExpYear, c.Cvv, c.CardHolder })
+        var isCardValid = await _context.Cards
+            .Select(c => new { c.Id, c.PanNumber, c.ExpMonth, c.ExpYear, c.Cvv, c.CardHolder })
             .Where(c => 
                 c.PanNumber == cardNumber && 
                 c.ExpMonth == expMonth && 
                 c.ExpYear == expYear && 
                 c.Cvv == cvv && 
-                c.CardHolder == CardHolder)
-            .AnyAsync();
-        return isCardValid ? Ok() : BadRequest();
+                c.CardHolder == cardHolder)
+            .FirstOrDefaultAsync();
+        return Ok(isCardValid);
     }
 }
